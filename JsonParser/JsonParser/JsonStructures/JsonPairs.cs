@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace JsonParser.JsonStructures
@@ -47,7 +48,6 @@ namespace JsonParser.JsonStructures
             }
             return sb.ToString();
         }
-
 
         /// <summary>
         ///  
