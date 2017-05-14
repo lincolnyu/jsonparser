@@ -1,12 +1,11 @@
 ﻿using JsonParser;
-using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace JsonParserTests
 {
     [TestClass]
     public class JsonTests
     {
-
         [TestMethod]
         public void TestMethod1()
         {
