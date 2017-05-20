@@ -39,6 +39,10 @@ namespace JsonParser.JsonStructures
 
         public string ToString(bool enclosed, int? baseIndent = null, int? tabSize = null)
         {
+            if (KeyValues.Count == 0)
+            {
+                return enclosed ? "{}" : string.Empty;
+            }
             var sb = new StringBuilder();
             if (enclosed)
             {
@@ -66,11 +70,8 @@ namespace JsonParser.JsonStructures
                 }
                 first = false;
             }
-            if (KeyValues.Count > 0)
-            {
-                var comma = sb.ToString().LastIndexOf(",");
-                sb.Remove(comma, sb.Length - comma); // remove the last comma
-            }
+            var comma = sb.ToString().LastIndexOf(",");
+            sb.Remove(comma, sb.Length - comma); // remove the last comma
             if (enclosed)
             {
                 if (baseIndent != null)

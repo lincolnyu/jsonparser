@@ -12,6 +12,10 @@ namespace JsonParser.JsonStructures
 
         public override string ToString(int? baseIndent, int? tabSize)
         {
+            if (Items.Count == 0)
+            {
+                return "[]";
+            }
             var sb = new StringBuilder();
             sb.Append('[');
             if (baseIndent != null)
@@ -38,11 +42,8 @@ namespace JsonParser.JsonStructures
                     sb.AppendLine();
                 }
             }
-            if (Items.Count > 0)
-            {
-                var comma = sb.ToString().LastIndexOf(",");
-                sb.Remove(comma, sb.Length - comma); // remove the last comma
-            }
+            var comma = sb.ToString().LastIndexOf(",");
+            sb.Remove(comma, sb.Length - comma); // remove the last comma
             if (baseIndent != null)
             {
                 sb.AppendLine();
