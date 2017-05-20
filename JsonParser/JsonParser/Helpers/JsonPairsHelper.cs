@@ -6,8 +6,7 @@ namespace JsonParser.Helpers
     {
         public static JsonNode GetNodeOrNull(this JsonPairs jsPairs, string key)
         {
-            JsonNode node;
-            if (jsPairs.KeyValues.TryGetValue(key, out node))
+            if (jsPairs.KeyValues.TryGetValue(key, out JsonNode node))
             {
                 return node;
             }

@@ -22,8 +22,7 @@ namespace JsonParser.JsonStructures
                 {
                     once = true;
                 }
-                var jsonPairs = item as JsonPairs;
-                if (jsonPairs != null)
+                if (item is JsonPairs jsonPairs)
                 {
                     sb.Append(jsonPairs.ToNakedStringIfPossible());
                 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 
 namespace JsonParser.JsonStructures
@@ -7,6 +6,28 @@ namespace JsonParser.JsonStructures
     public class JsonPairs : JsonNode
     {
         public Dictionary<string, JsonNode> KeyValues { get; private set; } = new Dictionary<string, JsonNode>();
+
+        public bool TryGetNode<TNode>(string key, out TNode node) where TNode : JsonNode
+        {
+            if (!KeyValues.TryGetValue(key, out var n))
+            {
+                node = null;
+                return false;
+            }
+            node = n as TNode;
+            return node != null;
+        }
+
+        public bool TryGetValue<TValue>(string key, out TValue val)
+        {
+            if (!TryGetNode<JsonValue<TValue>>(key, out var valNode))
+            {
+                val = default(TValue);
+                return false;
+            }
+            val = valNode.Value;
+            return true;
+        }
 
         public string ToNakedStringIfPossible()
         {
@@ -20,7 +41,6 @@ namespace JsonParser.JsonStructures
 
         private string ToString(bool enclosed)
         {
-
             var sb = new StringBuilder();
             if (enclosed)
             {
@@ -50,34 +70,48 @@ namespace JsonParser.JsonStructures
         }
 
         /// <summary>
-        ///  
+        ///  Parse a json pair
         /// </summary>
-        /// <param name="json"></param>
+        /// <param name="json">The json to parse</param>
         /// <remarks>
-        ///  NOTE we assume the json strings don't contain double quotes
+        ///  It now supports escape chars in quotes
         /// </remarks>
         public void Parse(string json)
         {
             json = json.Trim();
 
-            int valueStart = 0;
             var stack = new Stack<char>();
 
-            string key = null;
             JsonNode jsNode = null;
 
+            var inQuote = false;
+
             KeyValues.Clear();
+
+            string key = null;
             var keyStart = 1;
+            var valueStart = 0;
+
             // NOTE the last '}' is used for key-value pair terminating as ','
-            for (var i = 1; i < json.Length; i++)
+            foreach (var t in json.DeEscape(()=>inQuote))
             {
-                var c = json[i];
+                var c = t.Item1;
+                var i = t.Item2;
+                var charInQuote = false;
+                if (c == '"')
+                {
+                    inQuote = !inQuote;
+                }
+                else
+                {
+                    charInQuote = inQuote;
+                }
+
                 if (key == null)
                 {
-                    if (c == ':')
+                    if (c == ':' && !charInQuote)
                     {
-                        key = json.Substring(keyStart, i - keyStart);
-                        key = key.Trim().Trim('"');
+                        key = json.Substring(keyStart, i - keyStart).GetJsonKey();
                         jsNode = null;
                         valueStart = i + 1;
                         stack.Clear();
@@ -88,14 +122,14 @@ namespace JsonParser.JsonStructures
                 if (stack.Count > 0)
                 {
                     var b = stack.Peek();
-                    var popped = b == '[' && c == ']' || b == '{' && c == '}' || b == '"' && c == '"';
+                    var popped = (b == '[' && c == ']' || b == '{' && c == '}' || b == '"' && c == '"') && !charInQuote;
                     if (popped)
                     {
                         stack.Pop();
                     }
                     if (stack.Count == 0)
                     {
-                        var ss = json.Substring(valueStart, i+1-valueStart);
+                        var ss = json.Substring(valueStart, i + 1 - valueStart);
                         if (b == '{')
                         {
                             var jsPairs = new JsonPairs();
@@ -117,19 +151,15 @@ namespace JsonParser.JsonStructures
                 
                 if (jsNode == null)
                 {
-                    if (c == '[' || c == '{' || c == '"')
+                    if ((c == '[' || c == '{' || c == '"') && !charInQuote)
                     {
                         stack.Push(c);
                     }
                 }
 
-                if (stack.Count == 0 && (c == ',' || c == '}'))
+                if (stack.Count == 0 && (c == ',' || c == '}') && !charInQuote)
                 {
-                    if (jsNode == null)
-                    {
-                        var ss = json.Substring(valueStart, i - valueStart).Trim();
-                        jsNode = ss.GetJsonValue();
-                    }
+                    jsNode = jsNode ?? json.Substring(valueStart, i - valueStart).GetJsonValue();
 
                     KeyValues[key] = jsNode;
                     jsNode = null;

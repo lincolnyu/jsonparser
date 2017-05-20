@@ -1,5 +1,4 @@
 ﻿using JsonParser.JsonStructures;
-using System.Collections.Generic;
 
 namespace JsonParser
 {
@@ -39,14 +38,24 @@ namespace JsonParser
                         return false;
                     }
                 }
-                if (qstate == 0)
+                switch (qstate)
                 {
-                    if (!char.IsWhiteSpace(c) && c != '"') return false;
-                }
-                if (qstate == 2 )
-                {
-                    if (c == ':') return true;
-                    if (!char.IsWhiteSpace(c)) return false;
+                    case 0:
+                        if (!char.IsWhiteSpace(c) && c != '"')
+                        {
+                            return false;
+                        }
+                        break;
+                    case 2:
+                        if (c == ':')
+                        {
+                            return true;
+                        }
+                        else if (!char.IsWhiteSpace(c))
+                        {
+                            return false;
+                        }
+                        break;
                 }
             }
             return false;

@@ -1,4 +1,5 @@
 ﻿using JsonParser;
+using JsonParser.JsonStructures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace JsonParserTests
@@ -26,6 +27,17 @@ namespace JsonParserTests
             var jsNode = input.ParseJson();
             var output = jsNode.ToString();
             Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestMethod3()
+        {
+            const string input = "{\"titleWith\\\"QMs\\\"\":\"I have \\\"quotation marks\\\"\"}";
+            var jsNode = input.ParseJson();
+            var jsPairs = jsNode as JsonPairs;
+            Assert.IsTrue(jsPairs != null);
+            Assert.IsTrue(jsPairs.TryGetValue<string>("titleWith\"QMs\"", out var val));
+            Assert.AreEqual("I have \"quotation marks\"", val);
         }
     }
 }
