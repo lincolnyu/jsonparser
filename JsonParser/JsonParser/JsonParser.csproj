@@ -44,7 +44,8 @@
     <Compile Include="JsonStructures\JsonPairs.cs" />
     <Compile Include="JsonStructures\JsonValue.cs" />
     <Compile Include="JsonStructures\JsonNode.cs" />
-    <Compile Include="JsonStructures\JsonValueHelper.cs" />
+    <Compile Include="Helpers\JsonValueHelper.cs" />
+    <Compile Include="JsonStructures\Numeric.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

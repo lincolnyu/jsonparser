@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using JsonParser.JsonStructures;
 
-namespace JsonParser.JsonStructures
+namespace JsonParser.Helpers
 {
     public static class JsonValueHelper
     {
@@ -56,21 +57,33 @@ namespace JsonParser.JsonStructures
             }
             else
             {
-                if (int.TryParse(s, out int ival))
+                if (bool.TryParse(s, out var bval))
                 {
-                    var jsonInt = new JsonValue<int>
-                    {
-                        Value = ival
-                    };
-                    return jsonInt;
-                }
-                else if (bool.TryParse(s, out bool bval))
-                {
-                    var jsonBool = new JsonValue<bool>
+                    return new JsonValue<bool>
                     {
                         Value = bval
                     };
-                    return jsonBool;
+                }
+                else if (Numeric.IsDecimalNumeric(s))
+                {
+                    return new JsonValue<Numeric>
+                    {
+                        Value = new Numeric(s)
+                    };
+                }
+                else if (int.TryParse(s, out var ival))
+                {
+                    return new JsonValue<int>
+                    {
+                        Value = ival
+                    };
+                }
+                if (double.TryParse(s, out var fval))
+                {
+                    return new JsonValue<double>
+                    {
+                        Value = fval
+                    };
                 }
                 else
                 {

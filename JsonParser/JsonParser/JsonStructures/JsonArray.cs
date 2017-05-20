@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
+using JsonParser.Helpers;
 
 namespace JsonParser.JsonStructures
 {
@@ -7,31 +8,46 @@ namespace JsonParser.JsonStructures
     {
         public List<JsonNode> Items { get; private set; } = new List<JsonNode>();
 
-        public override string ToString()
+        public override string ToString() => ToString(null, null);
+
+        public override string ToString(int? baseIndent, int? tabSize)
         {
             var sb = new StringBuilder();
             sb.Append('[');
-            var once = false;
+            if (baseIndent != null)
+            {
+                sb.AppendLine();
+            }
             foreach (var item in Items)
             {
-                if (once)
+                if (baseIndent != null)
                 {
-                    sb.Append(',');
-                }
-                else
-                {
-                    once = true;
+                    sb.Append(new string(' ', tabSize.Value * (baseIndent.Value + 1)));
                 }
                 if (item is JsonPairs jsonPairs)
                 {
-                    sb.Append(jsonPairs.ToNakedStringIfPossible());
+                    sb.Append(jsonPairs.ToNakedStringIfPossible((baseIndent + 1) ?? null, tabSize));
                 }
                 else
                 {
-                    sb.Append(item.ToString());
+                    sb.Append(item.ToString((baseIndent + 1) ?? null, tabSize));
+                }
+                sb.Append(',');
+                if (baseIndent != null)
+                {
+                    sb.AppendLine();
                 }
             }
-            
+            if (Items.Count > 0)
+            {
+                var comma = sb.ToString().LastIndexOf(",");
+                sb.Remove(comma, sb.Length - comma); // remove the last comma
+            }
+            if (baseIndent != null)
+            {
+                sb.AppendLine();
+                sb.Append(new string(' ', tabSize.Value * baseIndent.Value));
+            }
             sb.Append(']');
             return sb.ToString();
         }

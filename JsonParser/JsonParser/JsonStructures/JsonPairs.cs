@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
+using JsonParser.Helpers;
 
 namespace JsonParser.JsonStructures
 {
@@ -29,41 +30,54 @@ namespace JsonParser.JsonStructures
             return true;
         }
 
-        public string ToNakedStringIfPossible()
-        {
-            return ToString(KeyValues.Count != 1);
-        }
+        public string ToNakedStringIfPossible(int? baseIndent = null, int? tabSize = null) 
+            => ToString(KeyValues.Count != 1, baseIndent, tabSize);
 
-        public override string ToString()
-        {
-            return ToString(true);
-        }
+        public override string ToString() => ToString(true);
 
-        private string ToString(bool enclosed)
+        public override string ToString(int? baseIndent, int? tabSize) => ToString(true, baseIndent, tabSize);
+
+        public string ToString(bool enclosed, int? baseIndent = null, int? tabSize = null)
         {
             var sb = new StringBuilder();
             if (enclosed)
             {
                 sb.Append('{');
+                if (baseIndent != null)
+                {
+                    sb.AppendLine();
+                }
             }
-            var once = false;
+            var first = true;
             foreach (var kvp in KeyValues)
             {
-                if (once)
+                if (baseIndent != null && (enclosed || !first))
                 {
-                    sb.Append(',');
-                }
-                else
-                {
-                    once = true;
+                    sb.Append(new string(' ', tabSize.Value * (baseIndent.Value + 1)));
                 }
                 sb.Append('"');
                 sb.Append(kvp.Key);
                 sb.Append("\":");
-                sb.Append(kvp.Value.ToString());
+                sb.Append(kvp.Value.ToString((enclosed ? baseIndent + 1 : baseIndent) ?? null, tabSize));
+                sb.Append(',');
+                if (baseIndent != null)
+                {
+                    sb.AppendLine();
+                }
+                first = false;
+            }
+            if (KeyValues.Count > 0)
+            {
+                var comma = sb.ToString().LastIndexOf(",");
+                sb.Remove(comma, sb.Length - comma); // remove the last comma
             }
             if (enclosed)
             {
+                if (baseIndent != null)
+                {
+                    sb.AppendLine();
+                    sb.Append(new string(' ', tabSize.Value * baseIndent.Value));
+                }
                 sb.Append('}');
             }
             return sb.ToString();
