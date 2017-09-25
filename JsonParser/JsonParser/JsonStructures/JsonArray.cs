@@ -55,32 +55,41 @@ namespace JsonParser.JsonStructures
 
         public void Parse(string json)
         {
-            var stack = new Stack<char>();
-            var isPair = false;
-            Items.Clear();
-            // The last ']' is used for terminating
-            int start = 1;
-            for (var i = 1; i < json.Length; i++)
-            {
-                var c = json[i];
+            System.Diagnostics.Debug.Assert(!char.IsWhiteSpace(json[0]));
+            System.Diagnostics.Debug.Assert(!char.IsWhiteSpace(json[json.Length - 1]));
 
-                if (stack.Count > 0)
+            var stack = new Stack<char>();
+            var inQuote = false;
+
+            var isPair = false; // To support naked pairs as items
+            var start = 1;
+
+            Items.Clear();
+
+            System.Diagnostics.Debug.Assert(json[0] == '[');
+            System.Diagnostics.Debug.Assert(json[json.Length - 1] == ']');
+
+            // NOTE The first '[' is consumed
+            //      and the last ']' is used for terminating
+            foreach (var t in json.DeEscape(() => inQuote, 1))
+            {
+                var c = t.Item1;
+                var de = t.Item3;
+
+                // flip in-quote status
+                if (c == '"' && !de)
                 {
-                    var b = stack.Peek();
-                    if (b == '[' && c == ']' || b == '{' && c == '}' || b == '"' && c == '"')
-                    {
-                        stack.Pop();
-                    }
-                    if (c != ']')
-                    {
-                        continue;
-                    }
-                }
-                else if (stack.Count == 0 && c == ':')
-                {
-                    isPair = true;
+                    inQuote = !inQuote;
                     continue;
                 }
+
+                // we don't need to do anything when it's in-quote
+                if (inQuote)
+                {
+                    continue;
+                }
+
+                var i = t.Item2;
 
                 if (stack.Count == 0 && (c == ',' ||  c == ']'))
                 {
@@ -110,7 +119,22 @@ namespace JsonParser.JsonStructures
                     start = i + 1;
                 }
 
-                if (c == '[' || c == '{' || c == '"')
+                if (stack.Count > 0)
+                {
+                    var b = stack.Peek();
+                    if (b == '[' && c == ']' || b == '{' && c == '}')
+                    {
+                        stack.Pop();
+                        continue;
+                    }
+                }
+                else if (c == ':')
+                {
+                    isPair = true; // Aggressively identify a naked pair
+                    continue;
+                }
+
+                if (c == '[' || c == '{')
                 {
                     stack.Push(c);
                 }   

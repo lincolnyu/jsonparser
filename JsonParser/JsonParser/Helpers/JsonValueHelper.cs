@@ -7,11 +7,29 @@ namespace JsonParser.Helpers
 {
     public static class JsonValueHelper
     {
-        public static IEnumerable<Tuple<char, int>> DeEscape(this string s, Func<bool> inQuote)
+        /// <summary>
+        ///  de-escape the string
+        /// </summary>
+        /// <param name="s">The string</param>
+        /// <param name="inQuote">
+        ///  The  predicate provided by the caller that tells this method whether 
+        ///  currently the string 
+        /// </param>
+        /// <param name="start">Optional start position (inclusive)</param>
+        /// <param name="end">Optional end position (esclusive)</param>
+        /// <returns>
+        ///  A enumerable of tuples that give
+        ///   1. The de-escaped original character (vertabim)
+        ///   2. The index of the character in the string (excluding the escape sign)
+        ///   3. Whether this is de-escaped character or character as is.
+        /// </returns>
+        public static IEnumerable<Tuple<char, int, bool>> DeEscape(this string s, Func<bool> inQuote, int start = 0, int? end = null)
         {
-            for (var i = 0; i < s.Length; i++)
+            var endPos = end ?? s.Length;
+            for (var i = start; i < endPos; i++)
             {
                 var c = s[i];
+                var escaped = false;
                 if (c == '\\' && inQuote())
                 {
                     if (++i >= s.Length)
@@ -19,8 +37,9 @@ namespace JsonParser.Helpers
                         break;
                     }
                     c = s[i];
+                    escaped = true;
                 }
-                yield return new Tuple<char, int>(c, i);
+                yield return new Tuple<char, int, bool>(c, i, escaped);
             }
         }
 

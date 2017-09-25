@@ -93,93 +93,104 @@ namespace JsonParser.JsonStructures
         /// </remarks>
         public void Parse(string json)
         {
-            json = json.Trim();
+            System.Diagnostics.Debug.Assert(!char.IsWhiteSpace(json[0]));
+            System.Diagnostics.Debug.Assert(!char.IsWhiteSpace(json[json.Length - 1]));
 
             var stack = new Stack<char>();
-
-            JsonNode jsNode = null;
-
             var inQuote = false;
 
-            KeyValues.Clear();
-
             string key = null;
+            JsonNode jsNode = null;
             var keyStart = 1;
             var valueStart = 0;
 
-            // NOTE the last '}' is used for key-value pair terminating as ','
-            foreach (var t in json.DeEscape(()=>inQuote))
+            KeyValues.Clear();
+
+            System.Diagnostics.Debug.Assert(json[0] == '{');
+            System.Diagnostics.Debug.Assert(json[json.Length-1] == '}');
+
+            // NOTE The first '{' is consumed
+            //      and the last '}' is used for key-value pair terminating similar to ','
+            foreach (var t in json.DeEscape(()=>inQuote, 1))
             {
                 var c = t.Item1;
-                var i = t.Item2;
-                var charInQuote = false;
-                if (c == '"')
+                var de = t.Item3;
+
+                // flip in-quote status
+                if (c == '"' && !de)
                 {
                     inQuote = !inQuote;
-                }
-                else
-                {
-                    charInQuote = inQuote;
-                }
-
-                if (key == null)
-                {
-                    if (c == ':' && !charInQuote)
-                    {
-                        key = json.Substring(keyStart, i - keyStart).GetJsonKey();
-                        jsNode = null;
-                        valueStart = i + 1;
-                        stack.Clear();
-                    }
                     continue;
                 }
 
-                if (stack.Count > 0)
+                // we don't need to do anything when it's in-quote
+                if (inQuote)
                 {
-                    var b = stack.Peek();
-                    var popped = (b == '[' && c == ']' || b == '{' && c == '}' || b == '"' && c == '"') && !charInQuote;
-                    if (popped)
-                    {
-                        stack.Pop();
-                    }
-                    if (stack.Count == 0)
-                    {
-                        var ss = json.Substring(valueStart, i + 1 - valueStart);
-                        if (b == '{')
-                        {
-                            var jsPairs = new JsonPairs();
-                            jsPairs.Parse(ss);
-                            jsNode = jsPairs;
-                        }
-                        else if (b == '[')
-                        {
-                            var jsArray = new JsonArray();
-                            jsArray.Parse(ss);
-                            jsNode = jsArray;
-                        }
-                    }
-                    if (popped)
-                    {
-                        continue;
-                    }
-                }
-                
-                if (jsNode == null)
-                {
-                    if ((c == '[' || c == '{' || c == '"') && !charInQuote)
-                    {
-                        stack.Push(c);
-                    }
+                    continue;
                 }
 
-                if (stack.Count == 0 && (c == ',' || c == '}') && !charInQuote)
+                var i = t.Item2;
+
+                if (key == null && c == ':')
                 {
+                    // This should be ensured by the fact that stack is performed only at the value part (see below)
+                    System.Diagnostics.Debug.Assert(stack.Count == 0);
+                    key = json.Substring(keyStart, i - keyStart).GetJsonKey();
+                    jsNode = null;
+                    valueStart = i + 1;
+                    continue;
+                }
+
+                // Try to collect a key
+                if (stack.Count == 0 && (c == ',' || c == '}'))
+                {
+                    if (key == null)
+                    {
+                        System.Diagnostics.Debug.Assert(key != null);
+                        // TODO error swallowed here, may want to throw/log depending on tolerance of the app
+                        key = "";
+                    }
+
                     jsNode = jsNode ?? json.Substring(valueStart, i - valueStart).GetJsonValue();
 
                     KeyValues[key] = jsNode;
                     jsNode = null;
                     key = null;
                     keyStart = i + 1;
+                    continue;
+                }
+
+                if (stack.Count > 0)
+                {
+                    var b = stack.Peek();
+                    if ((b == '[' && c == ']' || b == '{' && c == '}'))
+                    {
+                        stack.Pop();
+                        if (stack.Count == 0)
+                        {
+                            var ss = json.Substring(valueStart, i + 1 - valueStart).Trim();
+                            if (b == '{')
+                            {
+                                var jsPairs = new JsonPairs();
+                                jsPairs.Parse(ss);
+                                jsNode = jsPairs;
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.Assert(b == '[');
+                                var jsArray = new JsonArray();
+                                jsArray.Parse(ss);
+                                jsNode = jsArray;
+                            }
+                        }
+                        continue;
+                    }
+                }
+
+                // The nullity check is to make sure this stacking is only performed in the value part
+                if (jsNode == null && (c == '[' || c == '{')) 
+                {
+                    stack.Push(c);
                 }
             }
         }
