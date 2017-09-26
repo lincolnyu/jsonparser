@@ -91,7 +91,7 @@ namespace JsonParser.JsonStructures
 
                 var i = t.Item2;
 
-                if (stack.Count == 0 && (c == ',' ||  c == ']'))
+                if (stack.Count == 0 && (c == ',' || c == ']'))
                 {
                     var ss = json.Substring(start, i - start).Trim();
                     if (ss.Length > 0 && ss[0] == '{' || isPair)
@@ -104,6 +104,7 @@ namespace JsonParser.JsonStructures
                         var jsPairs = new JsonPairs();
                         jsPairs.Parse(ss);
                         Items.Add(jsPairs);
+                        isPair = false;
                     }
                     else if (ss.Length > 0 && ss[0] == '[')
                     {
@@ -111,7 +112,7 @@ namespace JsonParser.JsonStructures
                         jsArray.Parse(ss);
                         Items.Add(jsArray);
                     }
-                    else
+                    else if (!string.IsNullOrEmpty(ss))
                     {
                         var jsValue = ss.GetJsonValue();
                         Items.Add(jsValue);

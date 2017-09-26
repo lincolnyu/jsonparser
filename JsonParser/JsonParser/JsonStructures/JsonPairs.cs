@@ -144,16 +144,13 @@ namespace JsonParser.JsonStructures
                 // Try to collect a key
                 if (stack.Count == 0 && (c == ',' || c == '}'))
                 {
-                    if (key == null)
+                    // Invalid or empty pairs are ignored
+                    if (key != null)
                     {
-                        System.Diagnostics.Debug.Assert(key != null);
-                        // TODO error swallowed here, may want to throw/log depending on tolerance of the app
-                        key = "";
+                        jsNode = jsNode ?? json.Substring(valueStart, i - valueStart).GetJsonValue();
+                        KeyValues[key] = jsNode;
                     }
 
-                    jsNode = jsNode ?? json.Substring(valueStart, i - valueStart).GetJsonValue();
-
-                    KeyValues[key] = jsNode;
                     jsNode = null;
                     key = null;
                     keyStart = i + 1;

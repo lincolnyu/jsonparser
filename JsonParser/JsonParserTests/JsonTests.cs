@@ -121,5 +121,42 @@ namespace JsonParserTests
             Assert.AreEqual(new Numeric("-2345.678"), val2);
             Assert.AreEqual(expected, jsNode.ToString());
         }
+
+        [TestMethod]
+        public void TestEmptyArrayItems()
+        {
+            const string input = "[1234, -2345.678, , 1, ]";
+            const string expected = "[1234,-2345.678,1]";
+            var jsNode = input.ParseJson();
+            var jsArray = jsNode as JsonArray;
+            Assert.IsTrue(jsArray != null);
+            Assert.AreEqual(expected, jsNode.ToString());
+        }
+
+        [TestMethod]
+        public void TestEmptyArrayItems2()
+        {
+            const string input = "[\"posValue\": 1234, \"negVal\": -2345.678, ]";
+            const string expected = "[\"posValue\":1234,\"negVal\":-2345.678]";
+            var jsNode = input.ParseJson();
+            var jsArray = jsNode as JsonArray;
+            Assert.IsTrue(jsArray != null);
+            Assert.AreEqual(expected, jsNode.ToString());
+        }
+
+        [TestMethod]
+        public void TestEmptyPairs()
+        {
+            const string input = "{\"posValue\": 1234, , \"negVal\": -2345.678, }";
+            const string expected = "{\"posValue\":1234,\"negVal\":-2345.678}";
+            var jsNode = input.ParseJson();
+            var jsPairs = jsNode as JsonPairs;
+            Assert.IsTrue(jsPairs != null);
+            Assert.IsTrue(jsPairs.TryGetValue<Numeric>("posValue", out var val1));
+            Assert.AreEqual(new Numeric("1234"), val1);
+            Assert.IsTrue(jsPairs.TryGetValue<Numeric>("negVal", out var val2));
+            Assert.AreEqual(new Numeric("-2345.678"), val2);
+            Assert.AreEqual(expected, jsNode.ToString());
+        }
     }
 }
