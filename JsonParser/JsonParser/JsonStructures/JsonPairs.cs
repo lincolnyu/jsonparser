@@ -8,26 +8,43 @@ namespace JsonParser.JsonStructures
     {
         public Dictionary<string, JsonNode> KeyValues { get; private set; } = new Dictionary<string, JsonNode>();
 
+        public static bool TryGetNode<TNode>(KeyValuePair<string, JsonNode> pair, out TNode node) where TNode : JsonNode
+        {
+            node = pair.Value as TNode;
+            return node != null;
+        }
+
+        public static bool TryGetValue<TValue>(KeyValuePair<string, JsonNode> pair, out TValue val)
+        {
+            if (pair.Value is JsonValue<TValue> valNode)
+            {
+                val = valNode.Value;
+                return true;
+            }
+            val = default(TValue);
+            return false;
+        }
+
         public bool TryGetNode<TNode>(string key, out TNode node) where TNode : JsonNode
         {
-            if (!KeyValues.TryGetValue(key, out var n))
+            if (KeyValues.TryGetValue(key, out var n))
             {
-                node = null;
-                return false;
+                node = n as TNode;
+                return node != null;
             }
-            node = n as TNode;
-            return node != null;
+            node = null;
+            return false;
         }
 
         public bool TryGetValue<TValue>(string key, out TValue val)
         {
-            if (!TryGetNode<JsonValue<TValue>>(key, out var valNode))
+            if (TryGetNode<JsonValue<TValue>>(key, out var valNode))
             {
-                val = default(TValue);
-                return false;
+                val = valNode.Value;
+                return true;
             }
-            val = valNode.Value;
-            return true;
+            val = default(TValue);
+            return false;
         }
 
         public string ToNakedStringIfPossible(int? baseIndent = null, int? tabSize = null) 
