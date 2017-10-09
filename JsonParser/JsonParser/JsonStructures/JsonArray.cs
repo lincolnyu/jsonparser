@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using JsonParser.Helpers;
+using JsonParser.Formatting;
 
 namespace JsonParser.JsonStructures
 {
@@ -8,9 +9,13 @@ namespace JsonParser.JsonStructures
     {
         public List<JsonNode> Items { get; private set; } = new List<JsonNode>();
 
-        public override string ToString() => ToString(null, null);
+        /// <summary>
+        ///  The default string which is the most compact form
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString() => ToString(JsonFormat.CompactFormat, null, null, null);
 
-        public override string ToString(int? baseIndent, int? tabSize)
+        public override string ToString(JsonFormat format, JsonNode parentNode, int? baseIndent, int? tabSize)
         {
             if (Items.Count == 0)
             {
@@ -30,11 +35,11 @@ namespace JsonParser.JsonStructures
                 }
                 if (item is JsonPairs jsonPairs)
                 {
-                    sb.Append(jsonPairs.ToNakedStringIfPossible((baseIndent + 1) ?? null, tabSize));
+                    sb.Append(jsonPairs.ToString(format, this, (baseIndent + 1) ?? null, tabSize));
                 }
                 else
                 {
-                    sb.Append(item.ToString((baseIndent + 1) ?? null, tabSize));
+                    sb.Append(item.ToString(format, this, (baseIndent + 1) ?? null, tabSize));
                 }
                 sb.Append(',');
                 if (baseIndent != null)

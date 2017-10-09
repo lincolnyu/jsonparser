@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using JsonParser.Helpers;
+using JsonParser.Formatting;
+using static JsonParser.Formatting.JsonFormat;
 
 namespace JsonParser.JsonStructures
 {
@@ -47,54 +49,64 @@ namespace JsonParser.JsonStructures
             return false;
         }
 
-        public string ToNakedStringIfPossible(int? baseIndent = null, int? tabSize = null) 
-            => ToString(KeyValues.Count != 1, baseIndent, tabSize);
+        public override string ToString() => ToString(CompactFormat, null, null, null);
 
-        public override string ToString() => ToString(true);
-
-        public override string ToString(int? baseIndent, int? tabSize) => ToString(true, baseIndent, tabSize);
-
-        public string ToString(bool enclosed, int? baseIndent = null, int? tabSize = null)
+        public override string ToString(JsonFormat jsonFormat, JsonNode parentNode, int? baseIndent, int? tabSize)
         {
+            var enclose = jsonFormat.PairEnclosingType != PairEnclosingTypes.NoEncloseIfPossible
+                || !(parentNode is JsonArray) || KeyValues.Count > 1;
+            var newLineToBrace = baseIndent != null && !jsonFormat.Compact &&
+                (jsonFormat.PairEnclosingType == PairEnclosingTypes.EncloseRigid
+                || KeyValues.Count > 1);
             if (KeyValues.Count == 0)
             {
-                return enclosed ? "{}" : string.Empty;
+                return enclose ? "{}" : string.Empty;
             }
             var sb = new StringBuilder();
-            if (enclosed)
+            if (enclose)
             {
                 sb.Append('{');
-                if (baseIndent != null)
+                if (newLineToBrace)
                 {
                     sb.AppendLine();
                 }
+                else if (!jsonFormat.Compact)
+                {
+                    sb.Append(" ");
+                }
             }
-            var first = true;
             foreach (var kvp in KeyValues)
             {
-                if (baseIndent != null && (enclosed || !first))
+                if (baseIndent != null && newLineToBrace)
                 {
                     sb.Append(new string(' ', tabSize.Value * (baseIndent.Value + 1)));
                 }
                 sb.Append('"');
                 sb.Append(kvp.Key);
                 sb.Append("\":");
-                sb.Append(kvp.Value.ToString((enclosed ? baseIndent + 1 : baseIndent) ?? null, tabSize));
+                if (!jsonFormat.Compact)
+                {
+                    sb.Append(" ");
+                }
+                sb.Append(kvp.Value.ToString(jsonFormat, this, (enclose ? baseIndent + 1 : baseIndent) ?? null, tabSize));
                 sb.Append(',');
                 if (baseIndent != null)
                 {
                     sb.AppendLine();
                 }
-                first = false;
             }
             var comma = sb.ToString().LastIndexOf(",");
             sb.Remove(comma, sb.Length - comma); // remove the last comma
-            if (enclosed)
+            if (enclose)
             {
-                if (baseIndent != null)
+                if (newLineToBrace)
                 {
                     sb.AppendLine();
                     sb.Append(new string(' ', tabSize.Value * baseIndent.Value));
+                }
+                else if (!jsonFormat.Compact)
+                {
+                    sb.Append(" ");
                 }
                 sb.Append('}');
             }

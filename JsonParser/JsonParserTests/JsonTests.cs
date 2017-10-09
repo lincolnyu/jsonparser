@@ -1,4 +1,5 @@
 ﻿using JsonParser;
+using JsonParser.Formatting;
 using JsonParser.JsonStructures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,33 +14,33 @@ namespace JsonParserTests
             const string input = "{ \"id\":1,\"jsonrpc\":\"2.0\",\"result\":{ \"items\":[{\"episode\":-1,\"label\":\"American.Hustle.2013.720p.BluRay.x264.YIFY.mp4\",\"plot\":\"\",\"runtime\":8284,\"season\":-1,\"showtitle\":\"\",\"thumbnail\":\"\",\"title\":\"\",\"type\":\"unknown\"}],\"limits\":{\"end\":1,\"start\":0,\"total\":1}}}";
             const string expected = "{\"id\":1,\"jsonrpc\":\"2.0\",\"result\":{\"items\":[{\"episode\":-1,\"label\":\"American.Hustle.2013.720p.BluRay.x264.YIFY.mp4\",\"plot\":\"\",\"runtime\":8284,\"season\":-1,\"showtitle\":\"\",\"thumbnail\":\"\",\"title\":\"\",\"type\":\"unknown\"}],\"limits\":{\"end\":1,\"start\":0,\"total\":1}}}";
             const string expectedPretty = @"{
-    ""id"":1,
-    ""jsonrpc"":""2.0"",
-    ""result"":{
-        ""items"":[
+    ""id"": 1,
+    ""jsonrpc"": ""2.0"",
+    ""result"": {
+        ""items"": [
             {
-                ""episode"":-1,
-                ""label"":""American.Hustle.2013.720p.BluRay.x264.YIFY.mp4"",
-                ""plot"":"""",
-                ""runtime"":8284,
-                ""season"":-1,
-                ""showtitle"":"""",
-                ""thumbnail"":"""",
-                ""title"":"""",
-                ""type"":""unknown""
+                ""episode"": -1,
+                ""label"": ""American.Hustle.2013.720p.BluRay.x264.YIFY.mp4"",
+                ""plot"": """",
+                ""runtime"": 8284,
+                ""season"": -1,
+                ""showtitle"": """",
+                ""thumbnail"": """",
+                ""title"": """",
+                ""type"": ""unknown""
             }
         ],
-        ""limits"":{
-            ""end"":1,
-            ""start"":0,
-            ""total"":1
+        ""limits"": {
+            ""end"": 1,
+            ""start"": 0,
+            ""total"": 1
         }
     }
 }";
             var jsNode = input.ParseJson();
             var output = jsNode.ToString();
             Assert.AreEqual(expected, output);
-            var pretty = jsNode.ToString(0, 4);
+            var pretty = jsNode.ToString(JsonFormat.NormalFormat, null, 0, 4);
             Assert.AreEqual(expectedPretty, pretty);
         }
 
@@ -49,35 +50,35 @@ namespace JsonParserTests
             const string input = "{ \"id\":1,\"jsonrpc\":\"2.0\",\"result\":{ \"items\":[{\"episode\":-1,\"label\":\"American.Hustle.2013.720p.BluRay.x264.YIFY.mp4\r\nsecondline\",\"plot\":\"\",\"runtime\":8284,\"season\":-1,\"showtitle\":\"\",\"thumbnail\":\"\",\"title\":\"\",\"type\":\"unknown\"},\"param\": 1],\"limits\":{\"end\":1,\"start\":0,\"total\":1}}}";
             const string expected = "{\"id\":1,\"jsonrpc\":\"2.0\",\"result\":{\"items\":[{\"episode\":-1,\"label\":\"American.Hustle.2013.720p.BluRay.x264.YIFY.mp4\r\nsecondline\",\"plot\":\"\",\"runtime\":8284,\"season\":-1,\"showtitle\":\"\",\"thumbnail\":\"\",\"title\":\"\",\"type\":\"unknown\"},\"param\":1],\"limits\":{\"end\":1,\"start\":0,\"total\":1}}}";
             const string expectedPretty = @"{
-    ""id"":1,
-    ""jsonrpc"":""2.0"",
-    ""result"":{
-        ""items"":[
+    ""id"": 1,
+    ""jsonrpc"": ""2.0"",
+    ""result"": {
+        ""items"": [
             {
-                ""episode"":-1,
-                ""label"":""American.Hustle.2013.720p.BluRay.x264.YIFY.mp4
+                ""episode"": -1,
+                ""label"": ""American.Hustle.2013.720p.BluRay.x264.YIFY.mp4
                     secondline"",
-                ""plot"":"""",
-                ""runtime"":8284,
-                ""season"":-1,
-                ""showtitle"":"""",
-                ""thumbnail"":"""",
-                ""title"":"""",
-                ""type"":""unknown""
+                ""plot"": """",
+                ""runtime"": 8284,
+                ""season"": -1,
+                ""showtitle"": """",
+                ""thumbnail"": """",
+                ""title"": """",
+                ""type"": ""unknown""
             },
-            ""param"":1
+            ""param"": 1
         ],
-        ""limits"":{
-            ""end"":1,
-            ""start"":0,
-            ""total"":1
+        ""limits"": {
+            ""end"": 1,
+            ""start"": 0,
+            ""total"": 1
         }
     }
 }";
             var jsNode = input.ParseJson();
             var output = jsNode.ToString();
             Assert.AreEqual(expected, output);
-            var pretty = jsNode.ToString(0, 4);
+            var pretty = jsNode.ToString(JsonFormat.SuccinctFormat, null, 0, 4);
             Assert.AreEqual(expectedPretty, pretty);
         }
 

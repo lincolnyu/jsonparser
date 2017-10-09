@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using JsonParser.Formatting;
+using System.Text;
 
 namespace JsonParser.JsonStructures
 {
@@ -22,7 +23,7 @@ namespace JsonParser.JsonStructures
             }
         }
 
-        public override string ToString(int? baseIndent, int? tabSize)
+        public override string ToString(JsonFormat format, JsonNode parentNode, int? baseIndent, int? tabSize)
         {
             var s = ToString();
             if (baseIndent == null)
