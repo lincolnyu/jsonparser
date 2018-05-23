@@ -12,18 +12,20 @@ namespace JsonParser.Helpers
         /// </summary>
         /// <param name="s">The string</param>
         /// <param name="inQuote">
-        ///  The  predicate provided by the caller that tells this method whether 
-        ///  currently the string 
+        ///  The predicate provided by the caller that tells this method whether currently 
+        ///  in quote (the function is expected to get the position information from the 
+        ///  tuple receiver)
         /// </param>
         /// <param name="start">Optional start position (inclusive)</param>
         /// <param name="end">Optional end position (esclusive)</param>
         /// <returns>
         ///  A enumerable of tuples that give
-        ///   1. The de-escaped original character (vertabim)
+        ///   1. The de-escaped original character (verbatim)
         ///   2. The index of the character in the string (excluding the escape sign)
-        ///   3. Whether this is de-escaped character or character as is.
+        ///   3. Whether this is de-escaped character or the character as-is.
         /// </returns>
-        public static IEnumerable<Tuple<char, int, bool>> DeEscape(this string s, Func<bool> inQuote, int start = 0, int? end = null)
+        public static IEnumerable<Tuple<char, int, bool>> DeEscape(this string s, Func<bool> inQuote, 
+            int start = 0, int? end = null)
         {
             var endPos = end ?? s.Length;
             for (var i = start; i < endPos; i++)
